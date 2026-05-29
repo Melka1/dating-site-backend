@@ -67,17 +67,28 @@ export class AuthService {
     const existing = await this.users.findOne({ where: { username } });
     if (existing) throw new ConflictException('Username already taken');
 
-    const { data, error } = await this.supabase.client.auth.admin.createUser({
+    const gotrue = this.supabase.newGoTrueClient();
+    const { data, error } = await gotrue.auth.signUp({
       email: dto.email,
       password: dto.password,
-      user_metadata: { username, display_name: displayName },
-      email_confirm: false,
+      options: {
+        data: { username, display_name: displayName },
+      },
     });
-    if (error || !data.user) {
-      if (error?.message?.toLowerCase().includes('already registered')) {
+    if (error) {
+      if (error.message?.toLowerCase().includes('already registered')) {
         throw new ConflictException('Email already registered');
       }
-      throw new BadRequestException(error?.message ?? 'Signup failed');
+      throw new BadRequestException(error.message ?? 'Signup failed');
+    }
+    if (!data.user) {
+      throw new BadRequestException('Signup failed');
+    }
+    // GoTrue masks duplicate-email signups by returning a synthetic user with
+    // an empty identities array (anti-enumeration). Surface it as a conflict
+    // so the client can react instead of silently "succeeding".
+    if (Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      throw new ConflictException('Email already registered');
     }
 
     return {
