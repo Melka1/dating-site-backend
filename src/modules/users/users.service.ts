@@ -81,24 +81,6 @@ export class UsersService {
     return user;
   }
 
-  async heartbeat(userId: string): Promise<void> {
-    await this.users
-      .createQueryBuilder()
-      .update(User)
-      .set({ isOnline: true, lastActiveAt: () => 'now()' })
-      .where('id = :id', { id: userId })
-      .execute();
-  }
-
-  async goOffline(userId: string): Promise<void> {
-    await this.users
-      .createQueryBuilder()
-      .update(User)
-      .set({ isOnline: false, lastActiveAt: () => 'now()' })
-      .where('id = :id', { id: userId })
-      .execute();
-  }
-
   async softDelete(userId: string, actorId: string): Promise<{ restoreUrl: string }> {
     const user = await this.users.findOne({
       where: { id: userId },

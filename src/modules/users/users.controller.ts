@@ -10,6 +10,9 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+// Presence (online/offline) is now driven by the /presence Socket.IO gateway —
+// see presence.gateway.ts. The previous POST/DELETE /users/me/presence
+// heartbeat endpoints were removed when polling was replaced with sockets.
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CurrentViewer } from '../../common/decorators/current-viewer.decorator';
@@ -40,20 +43,6 @@ export class UsersController {
   @Patch('me')
   patchMe(@CurrentUser('sub') userId: string, @Body() dto: UpdateMeDto) {
     return this.users.patchMe(userId, dto);
-  }
-
-  @RequireVerified()
-  @Post('me/presence')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async heartbeat(@CurrentUser('sub') userId: string) {
-    await this.users.heartbeat(userId);
-  }
-
-  @RequireVerified()
-  @Delete('me/presence')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async goOffline(@CurrentUser('sub') userId: string) {
-    await this.users.goOffline(userId);
   }
 
   @RequireVerified()
