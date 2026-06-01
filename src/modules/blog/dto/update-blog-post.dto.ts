@@ -11,7 +11,7 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
-import { BLOG_POST_STATUSES } from './create-blog-post.dto';
+import { BLOG_POST_STATUSES, BLOG_POST_TYPES } from './create-blog-post.dto';
 
 const parseJsonArray = (value: unknown): unknown => {
   if (Array.isArray(value)) return value;
@@ -96,4 +96,9 @@ export class UpdateBlogPostDto {
   @IsOptional()
   @IsIn(BLOG_POST_STATUSES as readonly string[])
   status?: (typeof BLOG_POST_STATUSES)[number];
+
+  @ApiPropertyOptional({ enum: BLOG_POST_TYPES })
+  @IsOptional()
+  @IsIn(BLOG_POST_TYPES as readonly string[])
+  type?: (typeof BLOG_POST_TYPES)[number];
 }

@@ -38,6 +38,11 @@ export const envValidationSchema = Joi.object({
   RESTORE_TOKEN_SECRET: Joi.string().min(16).required(),
   RESTORE_TOKEN_EXPIRES_IN: Joi.string().default('60d'),
 
+  RESEND_API_KEY: Joi.string().optional(),
+  EMAIL_FROM: Joi.string().email().default('onboarding@resend.dev'),
+  EMAIL_FROM_NAME: Joi.string().default('Turulav'),
+  APP_BASE_URL: Joi.string().uri().default('http://localhost:3000'),
+
   THROTTLE_TTL: Joi.number().default(60),
   THROTTLE_LIMIT: Joi.number().default(100),
   THROTTLE_GUEST_TTL: Joi.number().default(60),

@@ -267,9 +267,19 @@ export class ProfilesService {
     }
     if (filters.country) qb.andWhere('p.country = :country', { country: filters.country });
     if (filters.city) qb.andWhere('lower(p.city) = lower(:city)', { city: filters.city });
-    if (filters.profession?.length) {
-      qb.andWhere('p.profession = ANY(:professions::text[])', {
-        professions: filters.profession,
+
+    // Mutual profession matching, mirroring the gender pair above.
+    // `filters.seekingProfessions` filters candidates' profession; `filters.profession`
+    // is the viewer's own profession and requires the candidate's seeking_professions
+    // to include it (or the 'any' wildcard).
+    if (filters.seekingProfessions?.length) {
+      qb.andWhere('p.profession = ANY(:wantedProfessions::text[])', {
+        wantedProfessions: filters.seekingProfessions,
+      });
+    }
+    if (filters.profession) {
+      qb.andWhere(`p.seeking_professions && ARRAY[:viewerProfession, 'any']::text[]`, {
+        viewerProfession: filters.profession,
       });
     }
 

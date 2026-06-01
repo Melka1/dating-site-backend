@@ -56,6 +56,7 @@ export function projectProfile(
     languages: profile.languages ?? [],
     religion: profile.religion,
     profession: profile.profession,
+    seekingProfessions: profile.seekingProfessions ?? [],
 
     city: seesMemberDetails ? profile.city : null,
     heightCm: seesMemberDetails ? profile.heightCm : null,

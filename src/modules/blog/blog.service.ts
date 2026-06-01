@@ -42,7 +42,7 @@ import { UpdateBlogPostDto } from './dto/update-blog-post.dto';
 import { BlogComment } from './entities/blog-comment.entity';
 import { BlogPostLike } from './entities/blog-post-like.entity';
 import { BlogPostTag } from './entities/blog-post-tag.entity';
-import { BlogPost, BlogPostStatus } from './entities/blog-post.entity';
+import { BlogPost, BlogPostStatus, BlogPostType } from './entities/blog-post.entity';
 import { BlogTag } from './entities/blog-tag.entity';
 
 const POPULAR_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
@@ -76,6 +76,7 @@ export interface BlogPostDto {
   cover: BlogCoverDto;
   tags: BlogTagDto[];
   status: BlogPostStatus;
+  type: BlogPostType;
   likeCount: number;
   commentCount: number;
   viewerLiked: boolean;
@@ -172,6 +173,9 @@ export class BlogService {
         )`,
         { tag: query.tag },
       );
+    }
+    if (query.type) {
+      qb.andWhere('p.type = :type', { type: query.type });
     }
 
     if (sort === 'popular') {
@@ -273,6 +277,7 @@ export class BlogService {
       }
 
       const status: BlogPostStatus = dto.status ?? 'draft';
+      const type: BlogPostType = dto.type ?? 'news';
       if (status === 'published' && !coverImageUrl && !coverVideoUrl) {
         throw new BadRequestException('Cover image or video required to publish');
       }
@@ -296,6 +301,7 @@ export class BlogService {
           coverImageUrl,
           coverVideoUrl,
           status,
+          type,
           publishedAt: status === 'published' ? new Date() : null,
         });
         const saved = await m.getRepository(BlogPost).save(post);
@@ -433,6 +439,8 @@ export class BlogService {
         post.coverImageUrl = null;
         post.coverVideoUrl = null;
       }
+
+      if (dto.type) post.type = dto.type;
 
       // Status transition + publish requirements.
       if (dto.status && dto.status !== post.status) {
@@ -964,6 +972,7 @@ export class BlogService {
           .filter((t): t is BlogTag => !!t)
           .map((t) => ({ slug: t.slug, name: t.name })),
         status: post.status,
+        type: post.type,
         likeCount: likeCounts.get(post.id) ?? 0,
         commentCount: commentCounts.get(post.id) ?? 0,
         viewerLiked: viewerLikedSet.has(post.id),

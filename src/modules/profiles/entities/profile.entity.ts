@@ -120,6 +120,9 @@ export class Profile {
   @Column({ type: 'text', nullable: true })
   profession!: Profession | null;
 
+  @Column({ name: 'seeking_professions', type: 'text', array: true, default: () => "'{}'" })
+  seekingProfessions!: string[];
+
   @Column({ name: 'avatar_url', type: 'text', nullable: true })
   avatarUrl!: string | null;
 

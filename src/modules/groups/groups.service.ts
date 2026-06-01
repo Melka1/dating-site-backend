@@ -30,6 +30,10 @@ import {
 } from './entities/group-member.entity';
 import { Group } from './entities/group.entity';
 
+const ACTIVE_MIN_MEMBERS = 3;
+const ACTIVE_POST_WINDOW_DAYS = 30;
+const ACTIVE_PRESENCE_WINDOW_DAYS = 14;
+
 const RESERVED_SLUGS = new Set([
   'admin',
   'admins',
@@ -778,6 +782,31 @@ export class GroupsService {
       qb.andWhere('g.interests && :interests::text[]', { interests: filters.interests });
     }
     if (filters.q) qb.andWhere('g.name % :q', { q: filters.q });
+    if (filters.activeOnly) {
+      qb.andWhere('g.member_count >= :activeMinMembers', {
+        activeMinMembers: ACTIVE_MIN_MEMBERS,
+      })
+        .andWhere(
+          `(
+            EXISTS (
+              SELECT 1 FROM posts p
+               WHERE p.group_id = g.id
+                 AND p.deleted_at IS NULL
+                 AND p.created_at > now() - (:activePostDays || ' days')::interval
+            )
+            OR EXISTS (
+              SELECT 1 FROM group_members gm
+               WHERE gm.group_id = g.id
+                 AND gm.status = 'active'
+                 AND gm.last_seen_at > now() - (:activePresenceDays || ' days')::interval
+            )
+          )`,
+          {
+            activePostDays: ACTIVE_POST_WINDOW_DAYS,
+            activePresenceDays: ACTIVE_PRESENCE_WINDOW_DAYS,
+          },
+        );
+    }
   }
 
   private applySort(
@@ -789,7 +818,17 @@ export class GroupsService {
         qb.orderBy('g.memberCount', 'DESC');
         break;
       case 'most_active':
-        qb.orderBy('g.updatedAt', 'DESC');
+        qb.orderBy(
+          `GREATEST(
+             COALESCE((SELECT max(p.created_at) FROM posts p
+                        WHERE p.group_id = g.id AND p.deleted_at IS NULL),
+                      'epoch'::timestamptz),
+             COALESCE((SELECT max(gm.last_seen_at) FROM group_members gm
+                        WHERE gm.group_id = g.id AND gm.status = 'active'),
+                      'epoch'::timestamptz)
+           )`,
+          'DESC',
+        );
         break;
       case 'newest':
       default:

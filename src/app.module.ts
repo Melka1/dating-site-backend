@@ -21,9 +21,12 @@ import { BlogModule } from './modules/blog/blog.module';
 import { FriendsModule } from './modules/friends/friends.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { HealthModule } from './modules/health/health.module';
+import { MailModule } from './modules/mail/mail.module';
+import { NewsletterModule } from './modules/newsletter/newsletter.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
 import { RetentionModule } from './modules/retention/retention.module';
+import { StatsModule } from './modules/stats/stats.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { UsersModule } from './modules/users/users.module';
 
@@ -69,6 +72,7 @@ import { UsersModule } from './modules/users/users.module';
     DatabaseModule,
     SupabaseModule,
     StorageModule,
+    MailModule,
     AuditModule,
     HealthModule,
     AuthModule,
@@ -78,8 +82,10 @@ import { UsersModule } from './modules/users/users.module';
     FriendsModule,
     PostsModule,
     BlogModule,
+    NewsletterModule,
     AdminModule,
     RetentionModule,
+    StatsModule,
   ],
   providers: [
     // Order matters: JwtAuthGuard must populate req.user BEFORE ThrottlerGuard

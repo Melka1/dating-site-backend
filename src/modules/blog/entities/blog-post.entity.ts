@@ -13,6 +13,7 @@ import type { BlogBlock } from '../blog-blocks';
 import { BlogComment } from './blog-comment.entity';
 
 export type BlogPostStatus = 'draft' | 'published' | 'archived';
+export type BlogPostType = 'news' | 'story' | 'tips' | 'advice';
 
 @Entity({ name: 'blog_posts' })
 export class BlogPost {
@@ -34,6 +35,9 @@ export class BlogPost {
 
   @Column({ type: 'text' })
   excerpt!: string;
+
+  @Column({ type: 'text', default: 'news' })
+  type!: BlogPostType;
 
   @Column({ type: 'jsonb', nullable: true })
   body!: BlogBlock[] | null;

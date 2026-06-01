@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 
 export const BLOG_POST_STATUSES = ['draft', 'published', 'archived'] as const;
+export const BLOG_POST_TYPES = ['news', 'story', 'tips', 'advice'] as const;
 
 /**
  * Parse a JSON-stringified array body coming in as a multipart text field.
@@ -101,4 +102,9 @@ export class CreateBlogPostDto {
   @IsOptional()
   @IsIn(BLOG_POST_STATUSES as readonly string[])
   status?: (typeof BLOG_POST_STATUSES)[number];
+
+  @ApiPropertyOptional({ enum: BLOG_POST_TYPES, default: 'news' })
+  @IsOptional()
+  @IsIn(BLOG_POST_TYPES as readonly string[])
+  type?: (typeof BLOG_POST_TYPES)[number];
 }

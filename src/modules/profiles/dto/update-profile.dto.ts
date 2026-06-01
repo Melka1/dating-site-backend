@@ -99,6 +99,17 @@ export class UpdateProfileDto {
   @ApiPropertyOptional({ enum: PROFESSIONS })
   @IsOptional() @IsIn(PROFESSIONS as readonly string[]) profession?: typeof PROFESSIONS[number];
 
+  @ApiPropertyOptional({
+    isArray: true,
+    type: String,
+    description: "Professions this user is open to meeting. Use 'any' as a wildcard.",
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(PROFESSIONS.length + 1)
+  @IsIn([...PROFESSIONS, 'any'] as readonly string[], { each: true })
+  seekingProfessions?: string[];
+
   @ApiPropertyOptional({ enum: VISIBILITY })
   @IsOptional()
   @IsIn(VISIBILITY as readonly string[])

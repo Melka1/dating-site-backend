@@ -57,7 +57,7 @@ The blog slice is intentionally separate from the activity Posts slice — diffe
 
 - DTOs at [dto/](../src/modules/blog/dto/):
   - [create-blog-post.dto.ts](../src/modules/blog/dto/create-blog-post.dto.ts) / [update-blog-post.dto.ts](../src/modules/blog/dto/update-blog-post.dto.ts) — multipart text fields. `body` arrives as a JSON string; a `@Transform` parses it before `@IsArray` runs. `tagSlugs` accepts repeated form fields or a comma-joined string.
-  - [list-blog-posts.dto.ts](../src/modules/blog/dto/list-blog-posts.dto.ts) — `q`, `tag`, `authorId`, `status`, `sort` ∈ {recent,popular}, `page`, `limit`.
+  - [list-blog-posts.dto.ts](../src/modules/blog/dto/list-blog-posts.dto.ts) — `q`, `tag`, `authorId`, `status`, `type` ∈ {news,story,tips,advice}, `sort` ∈ {recent,popular}, `page`, `limit`.
   - [blog-comment.dto.ts](../src/modules/blog/dto/blog-comment.dto.ts), [blog-tag.dto.ts](../src/modules/blog/dto/blog-tag.dto.ts).
 - Helpers:
   - [blog-slug.ts](../src/modules/blog/blog-slug.ts) — `slugify(title)` (NFKD + diacritic strip + lower-kebab) and `normalizeVideoUrl(raw)` (YouTube + Vimeo whitelist, returns the embed-form URL or `null`).
@@ -85,7 +85,7 @@ The blog slice is intentionally separate from the activity Posts slice — diffe
   - Misuse guard: uploading `media` files without a new `body` to reference them is a 400 (the upload was wasted and gets cleaned up).
 - `BlogService.softDelete` — editor-only; nulls `body`, sets `deleted_at`. Cover and body image blobs are retained for the grace window so a restore flow could be added later.
 - `BlogService.list`:
-  - Filters: `q` (ILIKE on title/excerpt), `tag` (EXISTS join), `authorId`, `status` (editors only — clamped to `published` for everyone else).
+  - Filters: `q` (ILIKE on title/excerpt), `tag` (EXISTS join), `authorId`, `status` (editors only — clamped to `published` for everyone else), `type` ∈ {news,story,tips,advice}.
   - Offset pagination (`page`/`limit`, default 12, max 50).
   - `sort='recent'` orders by `(published_at DESC NULLS LAST, created_at DESC)`. `sort='popular'` adds a `popularity_score` subselect (`likes + 2*comments`) inside a 30-day window.
 - `BlogService.findBySlug` — returns 404 for non-published posts unless the viewer is the author or an editor.
@@ -191,6 +191,7 @@ curl -X POST http://localhost:3000/api/v1/blog/posts \
   -H "Authorization: Bearer $EDITOR_TOKEN" \
   -F 'title=Remote work in 2026' \
   -F 'status=published' \
+  -F 'type=story' \
   -F 'tagSlugs=health-care' \
   -F 'tagSlugs=work' \
   -F 'cover=@./cover.jpg' \
@@ -245,14 +246,17 @@ curl -X POST http://localhost:3000/api/v1/blog/posts \
 
 `cover` (file) and `coverVideoUrl` (text) are mutually exclusive (both → 400). Image refs in the body must map to a `media` file with a matching index — `ref: 3` with only two `media` files → 400 and the uploads are cleaned up.
 
+`type` is optional on create and defaults to `news`. Allowed values: `news`, `story`, `tips`, `advice`.
+
 ### Read posts
 
 ```bash
 # Default — most recent published (page 1, limit 12)
 curl http://localhost:3000/api/v1/blog/posts
 
-# Tag / search / author / pagination / popular
+# Tag / type / search / author / pagination / popular
 curl -G http://localhost:3000/api/v1/blog/posts --data-urlencode 'tag=health-care'
+curl -G http://localhost:3000/api/v1/blog/posts --data-urlencode 'type=story'
 curl -G http://localhost:3000/api/v1/blog/posts --data-urlencode 'q=remote work'
 curl -G http://localhost:3000/api/v1/blog/posts --data-urlencode 'authorId=<userId>'
 curl -G http://localhost:3000/api/v1/blog/posts --data-urlencode 'sort=popular'
@@ -291,6 +295,7 @@ Response (single post):
     { "slug": "work",        "name": "Work" }
   ],
   "status": "published",
+  "type": "story",
   "likeCount": 12,
   "commentCount": 4,
   "viewerLiked": false,
@@ -341,6 +346,11 @@ curl -X PATCH http://localhost:3000/api/v1/blog/posts/<postId> \
         { "ref": 0, "alt": "New chart" }
     ]}
   ]'
+
+# Reclassify the post type
+curl -X PATCH http://localhost:3000/api/v1/blog/posts/<postId> \
+  -H "Authorization: Bearer $EDITOR_TOKEN" \
+  -F 'type=advice'
 
 # Publish a draft — must have a cover by now
 curl -X PATCH http://localhost:3000/api/v1/blog/posts/<postId> \

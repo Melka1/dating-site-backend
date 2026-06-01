@@ -34,6 +34,12 @@ export interface AppConfig {
     restoreSecret: string;
     restoreExpiresIn: string;
   };
+  email: {
+    resendApiKey: string;
+    from: string;
+    fromName: string;
+    appBaseUrl: string;
+  };
   throttle: {
     ttl: number;
     limit: number;
@@ -98,6 +104,12 @@ export default (): AppConfig => ({
   jwt: {
     restoreSecret: process.env.RESTORE_TOKEN_SECRET ?? 'dev-restore-secret-change-me',
     restoreExpiresIn: process.env.RESTORE_TOKEN_EXPIRES_IN ?? '60d',
+  },
+  email: {
+    resendApiKey: process.env.RESEND_API_KEY ?? '',
+    from: process.env.EMAIL_FROM ?? 'onboarding@resend.dev',
+    fromName: process.env.EMAIL_FROM_NAME ?? 'Turulav',
+    appBaseUrl: process.env.APP_BASE_URL ?? 'http://localhost:3000',
   },
   throttle: {
     ttl: parseInt(process.env.THROTTLE_TTL ?? '60', 10),

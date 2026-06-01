@@ -43,6 +43,7 @@ export interface ProfileDto {
   languages: string[];
   religion: string | null;
   profession: Profession | null;
+  seekingProfessions: string[];
 
   // ---- member+ ----
   city: string | null;

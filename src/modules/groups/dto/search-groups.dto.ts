@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsIn,
   IsInt,
   IsOptional,
@@ -56,6 +57,16 @@ export class SearchGroupsDto {
   @IsOptional()
   @IsIn(SORTS as readonly string[])
   sort?: GroupSort = 'newest';
+
+  @ApiPropertyOptional({
+    description:
+      'When true, restrict to active groups: member_count >= 3 AND a post within the last 30 days OR a member seen within the last 14 days.',
+    default: false,
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  @IsBoolean()
+  activeOnly?: boolean = false;
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()

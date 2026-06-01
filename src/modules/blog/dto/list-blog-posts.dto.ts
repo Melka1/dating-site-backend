@@ -11,7 +11,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { BLOG_POST_STATUSES } from './create-blog-post.dto';
+import { BLOG_POST_STATUSES, BLOG_POST_TYPES } from './create-blog-post.dto';
 
 export const BLOG_LIST_SORTS = ['recent', 'popular'] as const;
 
@@ -40,6 +40,11 @@ export class ListBlogPostsDto {
   @IsOptional()
   @IsIn(BLOG_POST_STATUSES as readonly string[])
   status?: (typeof BLOG_POST_STATUSES)[number];
+
+  @ApiPropertyOptional({ enum: BLOG_POST_TYPES, description: 'Filter by post type' })
+  @IsOptional()
+  @IsIn(BLOG_POST_TYPES as readonly string[])
+  type?: (typeof BLOG_POST_TYPES)[number];
 
   @ApiPropertyOptional({ enum: BLOG_LIST_SORTS, default: 'recent' })
   @IsOptional()

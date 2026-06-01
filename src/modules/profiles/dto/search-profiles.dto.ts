@@ -39,14 +39,22 @@ export class SearchProfilesDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) city?: string;
   @ApiPropertyOptional({
     enum: PROFESSIONS,
+    description: "Viewer's own profession. Used for mutual matching against candidates' seekingProfessions.",
+  })
+  @IsOptional()
+  @IsIn(PROFESSIONS as readonly string[])
+  profession?: typeof PROFESSIONS[number];
+
+  @ApiPropertyOptional({
+    enum: PROFESSIONS,
     isArray: true,
-    description: 'CSV or repeated values — matches candidates whose profession is in the list',
+    description: 'CSV or repeated values — candidates whose profession is in the list',
   })
   @IsOptional()
   @Transform(csv)
   @IsArray()
   @IsIn(PROFESSIONS as readonly string[], { each: true })
-  profession?: Array<typeof PROFESSIONS[number]>;
+  seekingProfessions?: Array<typeof PROFESSIONS[number]>;
 
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(18) @Max(120) minAge?: number;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(18) @Max(120) maxAge?: number;

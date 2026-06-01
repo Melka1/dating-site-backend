@@ -23,5 +23,12 @@ export const typeOrmOptions = (
     migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
     migrationsRun: false,
     migrationsTableName: 'typeorm_migrations',
+    // Keep pool well below Supavisor session-mode cap (15). On Vercel, each warm
+    // function instance owns its own pool, so leave headroom for parallel instances.
+    extra: {
+      max: parseInt(process.env.DATABASE_POOL_MAX ?? '3', 10),
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 5_000,
+    },
   };
 };
